@@ -2,10 +2,10 @@ extends KinematicBody2D
 
 const up = Vector2(0, -1)
 const gravity = 20
-const maxfallspeed = 200
-const maxspeed = 80
+const maxfallspeed = 300
+const maxspeed = 100
 const accel = 10
-const jumpforce = 350
+const jumpforce = 375
 
 var motion = Vector2()
 var facing_right = true
@@ -60,9 +60,10 @@ func _physics_process(delta):
 		$AnimationPlayer.play("Attack")
 		$AnimationPlayer.queue("Attack End")
 		yield($AnimationPlayer, "animation_finished")
+		attacking = false
 	
-	if $AnimationPlayer.current_animation_position != 0.7 and attacking:
-		if Input.is_action_pressed("Attack"):
+	if $AnimationPlayer.current_animation_position != 0.7 and $AnimationPlayer.current_animation == "Attack":
+		if Input.is_action_just_pressed("Attack"):
 			$AnimationPlayer.clear_queue()
 			$AnimationPlayer.play("Attack Combo")
 			$AnimationPlayer.queue("Attack End")
