@@ -1,19 +1,38 @@
 extends KinematicBody2D
 
-const up = Vector2(0, -1)
-const gravity = 20
-const maxfallspeed = 300
-const maxspeed = 100
-const accel = 10
-const jumpforce = 375
+onready var hp_bar = get_node("Hp_bar")
+onready var hp_timer = get_node("Hp_bar/Hp_bar_timer")
+onready var hp_tween = get_node("Hp_bar/Tween")
+
+var up = Vector2(0, -1)
+var gravity = 20
+var maxfallspeed = 300
+var maxspeed = 100
+var attackdashspeed = 400
+var dashspeed = 600
+var accel = 10
+var jumpforce = 390
 
 var motion = Vector2()
 var facing_right = true
 var attacking = false
 
+var attackcombo = 1
+var attackdamage = 40
+
+var maxhealth = 100
+var currenthealth
+var hp_percentage
+var hurted = false
+
+
 
 func _ready():
-	pass # Replace with function body.
+	currenthealth = maxhealth
+	add_to_group("Players")
+	hpBarUpdate()
+	hp_bar.hide()
+
 
 # warning-ignore:unused_argument
 func _physics_process(delta):
@@ -27,48 +46,137 @@ func _physics_process(delta):
 	if motion.y > maxfallspeed:
 		motion.y = maxfallspeed
 	
-	motion.x = clamp(motion.x, -maxspeed, maxspeed)
-	
-	if Input.is_action_pressed("Right"):
-		if !attacking:
-			motion.x += accel
-			facing_right = true
-			$AnimationPlayer.play("Walk")
-	elif Input.is_action_pressed("Left"):
-		if !attacking:
-			motion.x -= accel
-			facing_right = false
-			$AnimationPlayer.play("Walk")
+	if !attacking && !hurted:
+		motion.x = clamp(motion.x, -maxspeed, maxspeed)
 	else:
-		motion.x = lerp(motion.x, 0, 0.1)
-		if !attacking:
-			$AnimationPlayer.play("Idle")
+		motion.x = clamp(motion.x, -dashspeed, dashspeed)
+	
+	
+	if Input.is_action_pressed("Right") && !attacking && !hurted:
+		motion.x += accel
+		facing_right = true
+		$AnimationPlayer.play("Walk")
+	elif Input.is_action_pressed("Left") && !attacking && !hurted:
+		motion.x -= accel
+		facing_right = false
+		$AnimationPlayer.play("Walk")
+	elif !attacking && !hurted:
+		motion.x = lerp(motion.x, 0, 0.15)
+		$AnimationPlayer.play("Idle")
+	else:
+		motion.x = lerp(motion.x, 0, 0.3)
 	
 	if is_on_floor():
-		if Input.is_action_just_pressed("Jump"):
+		if Input.is_action_just_pressed("Jump") && !attacking && !hurted:
 			motion.y = -jumpforce
-			lerp(motion.x, 0, 0.2)
+			motion.x = lerp(motion.x, 0, 0.2)
 	
-	if !is_on_floor() and !attacking:
+	if !is_on_floor() && !attacking && !hurted:
 		if motion.y > 1:
 			$AnimationPlayer.play("Fall")
 		elif motion.y < 0:
 			$AnimationPlayer.play("Jump")
 	
-	if Input.is_action_just_pressed("Attack"):
+	if Input.is_action_just_pressed("Attack") && attackcombo == 1 && !hurted:
 		attacking = true
 		$AnimationPlayer.play("Attack")
-		$AnimationPlayer.queue("Attack End")
-		yield($AnimationPlayer, "animation_finished")
-		attacking = false
-	
-	if $AnimationPlayer.current_animation_position != 0.7 and $AnimationPlayer.current_animation == "Attack":
-		if Input.is_action_just_pressed("Attack"):
-			$AnimationPlayer.clear_queue()
-			$AnimationPlayer.play("Attack Combo")
-			$AnimationPlayer.queue("Attack End")
-			yield($AnimationPlayer, "animation_finished")
-	
-	
+		attackcombo += 1
+	elif Input.is_action_just_pressed("Attack") && attackcombo == 2 && !hurted:
+		attacking = true
+		$AnimationPlayer.queue("Attack 2")
+		attackcombo += 1
+	elif Input.is_action_just_pressed("Attack") && attackcombo == 3 && !hurted:
+		attacking = true
+		$AnimationPlayer.queue("Attack 3")
+		attackcombo = 0
 	
 	motion = move_and_slide(motion, up)
+
+
+
+func _on_AnimationPlayer_animation_finished(anim_name):
+	if anim_name == "Attack End":
+		attacking = false
+		attackcombo = 1
+	
+	if anim_name == "Attack":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Attack 2":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Attack 3":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
+		attacking = false
+		hurted = false
+		attackcombo = 1
+	
+
+
+
+func AttackMovement():
+	if facing_right:
+		motion.x = attackdashspeed
+	else :
+		motion.x = -attackdashspeed
+	
+
+
+
+func _on_AttackArea_body_entered(body):
+	if body.is_in_group("Enemies"):
+		if facing_right:
+			body.hurt(attackdamage, Vector2(1,0))
+		else:
+			body.hurt(attackdamage, Vector2(-1,0))
+
+
+
+func getHurt(damage, direction):
+	currenthealth -= damage
+	hpBarUpdate()
+	hurted = true
+	if direction.x == 1:
+		$AnimationPlayer.play("Hurt Right")
+	elif direction.x == -1:
+		$AnimationPlayer.play("Hurt Left")
+
+
+
+func HurtMovement(direction):
+	if direction.x == 1:
+		motion.x = 400
+		motion.y = -120
+		
+	elif direction.x == -1:
+		motion.x = -400
+		motion.y = -120
+	
+
+
+
+func hpBarUpdate():
+	hp_bar.show()
+	hp_percentage = int((float(currenthealth)/maxhealth)*100)
+	hp_tween.interpolate_property(hp_bar, 'value', hp_bar.value, hp_percentage, 0.1, Tween.TRANS_LINEAR, Tween.EASE_IN, 0.2)
+	hp_tween.start()
+	if hp_percentage > 60:
+		hp_bar.set_tint_progress("14e114") #Green
+	elif hp_percentage <= 60 and hp_percentage > 25:
+		hp_bar.set_tint_progress("ffd800") #Yellow
+	else:
+		hp_bar.set_tint_progress("ff0000") #Red
+	hp_timer.start()
+
+
+
+func _on_Hp_timer_timeout():
+	hp_bar.hide()
+
+
+func _on_Hp_regen_timeout():
+	if hp_percentage != 100:
+		currenthealth += 1
+		hpBarUpdate()
