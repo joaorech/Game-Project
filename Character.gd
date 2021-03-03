@@ -32,6 +32,7 @@ func _ready():
 	add_to_group("Players")
 	hpBarUpdate()
 	hp_bar.hide()
+	
 
 
 # warning-ignore:unused_argument
@@ -162,6 +163,7 @@ func _on_AttackArea_body_entered(body):
 
 func getHurt(damage, direction):
 	currenthealth -= damage
+	currenthealth = clamp(currenthealth, 0, maxhealth)
 	hpBarUpdate()
 	hurted = true
 	if direction.x == 1:
