@@ -395,7 +395,6 @@ radius = 10.9251
 height = 31.3824
 
 [node name="Character" type="KinematicBody2D"]
-position = Vector2( 364.146, 243.245 )
 collision_layer = 2
 script = ExtResource( 2 )
 
@@ -411,9 +410,55 @@ scale = Vector2( 0.75, 0.75 )
 shape = SubResource( 1 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 0, -20 )
 current = true
 zoom = Vector2( 0.3, 0.3 )
+smoothing_enabled = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D"]
+layer = -2
+scale = Vector2( 3.2, 3.125 )
+transform = Transform2D( 3.2, 0, 0, 3.125, 0, 0 )
+
+[node name="Sky" type="Sprite" parent="Camera2D/CanvasLayer"]
+texture = ExtResource( 3 )
+centered = false
+
+[node name="Background" type="ParallaxBackground" parent="Camera2D"]
+layer = -1
+follow_viewport_enable = true
+follow_viewport_scale = 0.3
+
+[node name="Clouds" type="ParallaxLayer" parent="Camera2D/Background"]
+motion_scale = Vector2( 0.125, 0 )
+motion_mirroring = Vector2( 640, 0 )
+
+[node name="CloudsTop" type="Sprite" parent="Camera2D/Background/Clouds"]
+z_index = -2
+texture = ExtResource( 5 )
+offset = Vector2( 80, 0 )
+
+[node name="CloudsBot" type="Sprite" parent="Camera2D/Background/Clouds"]
+texture = ExtResource( 5 )
+offset = Vector2( 80, 160 )
+flip_v = true
+
+[node name="Cloud Mid" type="ParallaxLayer" parent="Camera2D/Background"]
+motion_scale = Vector2( 0.125, 0 )
+motion_mirroring = Vector2( 480, 0 )
+
+[node name="CloudsMid" type="Sprite" parent="Camera2D/Background/Cloud Mid"]
+texture = ExtResource( 5 )
+offset = Vector2( 160, 40 )
+
+[node name="Mountains" type="ParallaxLayer" parent="Camera2D/Background"]
+motion_scale = Vector2( 0.25, 0.5 )
+motion_offset = Vector2( 0, 40 )
+motion_mirroring = Vector2( 640, 0 )
+
+[node name="Mountains" type="Sprite" parent="Camera2D/Background/Mountains"]
+z_as_relative = false
+texture = ExtResource( 4 )
+offset = Vector2( 80, 900 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/Attack = SubResource( 2 )
@@ -429,37 +474,25 @@ anims/Idle = SubResource( 11 )
 anims/Jump = SubResource( 12 )
 anims/Walk = SubResource( 13 )
 
-[node name="Sky" type="Sprite" parent="."]
-position = Vector2( 0, -20 )
-z_index = -3
-texture = ExtResource( 3 )
-
-[node name="Clouds" type="Sprite" parent="."]
-position = Vector2( 0, -20 )
-z_index = -2
-texture = ExtResource( 5 )
-
-[node name="Mountains" type="Sprite" parent="."]
-position = Vector2( 0, 10 )
-z_index = -1
-texture = ExtResource( 4 )
-
 [node name="AttackArea" type="Area2D" parent="."]
 collision_mask = 0
 
 [node name="AttackArea" type="CollisionShape2D" parent="AttackArea"]
+visible = false
 position = Vector2( 0, 2 )
 rotation = 1.5708
 shape = SubResource( 14 )
 disabled = true
 
 [node name="Attack2Area" type="CollisionShape2D" parent="AttackArea"]
+visible = false
 position = Vector2( -1, -1 )
 rotation = 1.5708
 shape = SubResource( 15 )
 disabled = true
 
 [node name="Attack3Area" type="CollisionShape2D" parent="AttackArea"]
+visible = false
 position = Vector2( 0, -3 )
 rotation = 1.5708
 shape = SubResource( 16 )
@@ -467,9 +500,9 @@ disabled = true
 
 [node name="Hp_bar" type="TextureProgress" parent="."]
 margin_left = -14.5
-margin_top = -23.0
+margin_top = -25.0
 margin_right = 15.5
-margin_bottom = -17.0
+margin_bottom = -19.0
 value = 100.0
 texture_under = ExtResource( 6 )
 texture_over = ExtResource( 7 )
@@ -489,7 +522,6 @@ one_shot = true
 
 [node name="Hp_regen" type="Timer" parent="Hp_bar"]
 autostart = true
-[connection signal="animation_changed" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_changed"]
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]
 [connection signal="body_entered" from="AttackArea" to="." method="_on_AttackArea_body_entered"]
 [connection signal="timeout" from="Hp_bar/Hp_bar_timer" to="." method="_on_Hp_timer_timeout"]

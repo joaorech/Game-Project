@@ -8,6 +8,7 @@
 position = Vector2( -1.04401, 0.399002 )
 
 [node name="Character" parent="." instance=ExtResource( 1 )]
+position = Vector2( 351.281, 239.384 )
 z_index = 1
 
 [node name="TileSet" parent="." instance=ExtResource( 3 )]

@@ -4,7 +4,6 @@ onready var hp_bar = get_node("Hp_bar")
 onready var hp_timer = get_node("Hp_bar/Hpbar timer")
 onready var hp_tween = get_node("Hp_bar/Tween")
 onready var player = get_parent().get_node("Character")
-onready var navigation_map = get_parent().get_node("TileSet/Navigation2D")
 
 var rng = RandomNumberGenerator.new()
 
@@ -17,6 +16,7 @@ var maxhealth = 100
 var currenthealth
 var hp_percentage
 var state = "Idle"
+var previous_state
 
 var facing_right
 var destination
@@ -41,7 +41,8 @@ func _ready():
 		facing_right = false
 
 func _process(delta):
-	
+	if previous_state == "Dead":
+		state = "Dead"
 	match state:
 		"Idle":
 			idleLoop()
@@ -51,6 +52,8 @@ func _process(delta):
 			hurtLoop()
 		"Pursue":
 			pursueLoop()
+		"Reviving":
+			pass
 		
 
 func _physics_process(delta):
@@ -66,6 +69,7 @@ func _physics_process(delta):
 		$Dead.scale.x = 1
 		$Walk.scale.x = 1
 		$Attack.scale.x = 1
+	
 	motion = move_and_slide(motion, Vector2(0, -1), false, 1)
 
 
@@ -83,19 +87,11 @@ func idleLoop():
 		
 	motion.x = lerp(motion.x, 0, 0.15)
 	
-	print(get_global_position().direction_to(player.get_global_position()).x)
 
 
 func deadLoop():
 	motion.x = 0
 	motion.y = 0
-	
-	$Hurt.visible = false
-	$Dead.visible = true
-	$Idle.visible = false
-	$Walk.visible = false
-	$Attack.visible = false
-	$AnimationPlayer.play("Dead")
 
 
 func hurtLoop():
@@ -124,12 +120,6 @@ func pursueLoop():
 		motion.y = maxfallspeed
 	
 	if $AnimationPlayer.current_animation != "Attack":
-		$Hurt.visible = false
-		$Dead.visible = false
-		$Idle.visible = false
-		$Walk.visible = true
-		$Attack.visible = false
-		$AnimationPlayer.play("Walk")
 		if get_global_position().distance_to(player.get_global_position()) > 30:
 			motion.x += (get_global_position().direction_to(player.get_global_position()).x)*accel
 			motion.x = clamp(motion.x, -maxspeed, maxspeed)
@@ -137,20 +127,36 @@ func pursueLoop():
 				facing_right = false
 			else:
 				facing_right = true
+			
+			if motion.x <= 1.5 and motion.x >= -1.5:
+				$Hurt.visible = false
+				$Dead.visible = false
+				$Idle.visible = true
+				$Walk.visible = false
+				$Attack.visible = false
+				$AnimationPlayer.play("Idle")
+			else:
+				$Hurt.visible = false
+				$Dead.visible = false
+				$Idle.visible = false
+				$Walk.visible = true
+				$Attack.visible = false
+				$AnimationPlayer.play("Walk")
 		else:
 			if can_attack == true:
 				attack()
-	
 	motion.x = lerp(motion.x, 0, 0.15)
 
 
 func hurt(damage, direction):
 	currenthealth -= damage
 	hpBarUpdate()
-	if currenthealth <= 0:
+	if hp_percentage <= 0:
 		die()
 	else :
-		state = "Hurt"
+		if !state == "Hurt":
+			previous_state = state
+			state = "Hurt"
 		$Hurt.visible = true
 		$Dead.visible = false
 		$Idle.visible = false
@@ -179,7 +185,14 @@ func hpBarUpdate():
 
 
 func die():
+	previous_state = state
 	state = "Dead"
+	$Hurt.visible = false
+	$Dead.visible = true
+	$Idle.visible = false
+	$Walk.visible = false
+	$Attack.visible = false
+	$AnimationPlayer.play("Dead")
 	get_node("CollisionShape2D").set_deferred('disabled', true)
 	get_node("AttackArea/SkeletonBody").set_deferred('disabled', true)
 	get_node("VisionRange/CollisionShape2D").set_deferred('disabled', true)
@@ -189,10 +202,11 @@ func die():
 
 
 func _on_RespawnTime_timeout():
+	previous_state = null
+	state = "Idle"
 	get_node("CollisionShape2D").set_deferred('disabled', false)
 	get_node("AttackArea/SkeletonBody").set_deferred('disabled', false)
 	get_node("VisionRange/CollisionShape2D").set_deferred('disabled', false)
-	state = "Idle"
 	
 	currenthealth = maxhealth
 	hpBarUpdate()
@@ -208,7 +222,12 @@ func _on_AnimationPlayer_animation_finished(anim_name):
 		$Walk.visible = false
 		$Attack.visible = false
 	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
-		state = "Idle"
+		if previous_state == "Pursue":
+			previous_state = state
+			state = "Pursue"
+		else:
+			previous_state = state
+			state = "Idle"
 		
 
 
@@ -253,15 +272,19 @@ func _on_Hpbar_timer_timeout():
 
 
 func _on_VisionRange_body_entered(body):
-	if body.is_in_group("Players"):
-		player_in_range = true
-		state = "Pursue"
+	if state != "dead":
+		if body.is_in_group("Players"):
+			player_in_range = true
+			previous_state = state
+			state = "Pursue"
 
 
 func _on_VisionRange_body_exited(body):
-	if body.is_in_group("Players"):
-		player_in_range = false
-		state = "Idle"
+	if state != "dead":
+		if body.is_in_group("Players"):
+			player_in_range = false
+			previous_state = state
+			state = "Idle"
 
 
 func _on_Attack_Speed_timeout():
