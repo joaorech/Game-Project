@@ -140,7 +140,8 @@ tracks/2/keys = {
 }
 
 [sub_resource type="Animation" id=5]
-length = 0.5
+length = 0.25
+step = 0.05
 tracks/0/type = "value"
 tracks/0/path = NodePath("Sprite:frame")
 tracks/0/interp = 1
@@ -148,10 +149,10 @@ tracks/0/loop_wrap = true
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/keys = {
-"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4 ),
-"transitions": PoolRealArray( 1, 1, 1, 1, 1 ),
+"times": PoolRealArray( 0, 0.1, 0.2 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
 "update": 1,
-"values": [ 55, 56, 57, 58, 59 ]
+"values": [ 56, 57, 59 ]
 }
 
 [sub_resource type="Animation" id=6]
@@ -402,7 +403,7 @@ script = ExtResource( 2 )
 texture = ExtResource( 1 )
 vframes = 12
 hframes = 10
-frame = 42
+frame = 59
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 0, 1.5 )
@@ -413,6 +414,7 @@ shape = SubResource( 1 )
 current = true
 zoom = Vector2( 0.3, 0.3 )
 smoothing_enabled = true
+smoothing_speed = 4.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Camera2D"]
 layer = -2
@@ -475,24 +477,23 @@ anims/Jump = SubResource( 12 )
 anims/Walk = SubResource( 13 )
 
 [node name="AttackArea" type="Area2D" parent="."]
-collision_mask = 0
+visible = false
+collision_layer = 8
+collision_mask = 4
 
 [node name="AttackArea" type="CollisionShape2D" parent="AttackArea"]
-visible = false
 position = Vector2( 0, 2 )
 rotation = 1.5708
 shape = SubResource( 14 )
 disabled = true
 
 [node name="Attack2Area" type="CollisionShape2D" parent="AttackArea"]
-visible = false
 position = Vector2( -1, -1 )
 rotation = 1.5708
 shape = SubResource( 15 )
 disabled = true
 
 [node name="Attack3Area" type="CollisionShape2D" parent="AttackArea"]
-visible = false
 position = Vector2( 0, -3 )
 rotation = 1.5708
 shape = SubResource( 16 )

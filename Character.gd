@@ -27,6 +27,9 @@ var hurted = false
 
 var dashing = false
 
+
+
+
 func _ready():
 	currenthealth = maxhealth
 	add_to_group("Players")
@@ -100,31 +103,6 @@ func _physics_process(delta):
 
 
 
-func _on_AnimationPlayer_animation_finished(anim_name):
-	if anim_name == "Attack End":
-		attacking = false
-		attackcombo = 1
-	
-	if anim_name == "Attack":
-		$AnimationPlayer.play("Attack End")
-	
-	if anim_name == "Attack 2":
-		$AnimationPlayer.play("Attack End")
-	
-	if anim_name == "Attack 3":
-		$AnimationPlayer.play("Attack End")
-	
-	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
-		attacking = false
-		dashing = false
-		hurted = false
-		attackcombo = 1
-	
-	if anim_name == "Dash Forward":
-		dashing = false
-
-
-
 func AttackMovement():
 	if facing_right:
 		motion.x = attackdashspeed
@@ -152,12 +130,15 @@ func backDashMovement():
 
 
 
-func _on_AttackArea_body_entered(body):
-	if body.is_in_group("Enemies"):
-		if facing_right:
-			body.hurt(attackdamage, Vector2(1,0))
-		else:
-			body.hurt(attackdamage, Vector2(-1,0))
+func HurtMovement(direction):
+	if direction.x == 1:
+		motion.x = 400
+		motion.y = -120
+		
+	elif direction.x == -1:
+		motion.x = -400
+		motion.y = -120
+	
 
 
 
@@ -173,18 +154,6 @@ func getHurt(damage, direction):
 
 
 
-func HurtMovement(direction):
-	if direction.x == 1:
-		motion.x = 400
-		motion.y = -120
-		
-	elif direction.x == -1:
-		motion.x = -400
-		motion.y = -120
-	
-
-
-
 func hpBarUpdate():
 	hp_bar.show()
 	hp_percentage = int((float(currenthealth)/maxhealth)*100)
@@ -197,6 +166,40 @@ func hpBarUpdate():
 	else:
 		hp_bar.set_tint_progress("ff0000") #Red
 	hp_timer.start()
+
+
+
+func _on_AnimationPlayer_animation_finished(anim_name):
+	if anim_name == "Attack End":
+		attacking = false
+		attackcombo = 1
+	
+	if anim_name == "Attack":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Attack 2":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Attack 3":
+		$AnimationPlayer.play("Attack End")
+	
+	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
+		attacking = false
+		dashing = false
+		hurted = false
+		attackcombo = 1
+	
+	if anim_name == "Dash Forward":
+		dashing = false
+
+
+
+func _on_AttackArea_body_entered(body):
+	if body.is_in_group("Enemies"):
+		if facing_right:
+			body.hurt(attackdamage, Vector2(1,0))
+		else:
+			body.hurt(attackdamage, Vector2(-1,0))
 
 
 

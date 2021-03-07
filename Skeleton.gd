@@ -7,10 +7,16 @@ onready var player = get_parent().get_node("Character")
 
 var rng = RandomNumberGenerator.new()
 
-var gravity = 20
+var gravityforce = 20
 var maxfallspeed = 200
+var gravity_on = true
+
 var accel = 10
 var maxspeed = 60
+var facing_right
+var motion = Vector2()
+var move_direction = Vector2()
+var steady = true
 
 var maxhealth = 100
 var currenthealth
@@ -18,15 +24,12 @@ var hp_percentage
 var state = "Idle"
 var previous_state
 
-var facing_right
-var destination
-
-var motion = Vector2()
-
 var can_attack = true
+var attacking = false
 var attackdamage = 20
 
 var player_in_range
+
 
 
 func _ready():
@@ -40,23 +43,77 @@ func _ready():
 	else:
 		facing_right = false
 
+
+# warning-ignore:unused_argument
 func _process(delta):
+	facing()
 	if previous_state == "Dead":
 		state = "Dead"
 	match state:
 		"Idle":
 			idleLoop()
+			moveAnimation()
 		"Dead":
 			deadLoop()
 		"Hurt":
 			hurtLoop()
 		"Pursue":
 			pursueLoop()
+			moveAnimation()
 		"Reviving":
 			pass
 		
 
+
+# warning-ignore:unused_argument
 func _physics_process(delta):
+	if gravity_on:
+		gravity()
+	
+	motion.x += move_direction.x*accel
+	
+	if motion.x <= 1.5 and motion.x >= -1.5:
+		steady = true
+	else:
+		steady = false
+	
+	if state != "Hurt":
+		motion.x = clamp(motion.x, -maxspeed, maxspeed)
+	motion = move_and_slide(motion, Vector2(0, -1), false, 1)
+	motion.x = lerp(motion.x, 0, 0.15)
+	
+
+
+func moveAnimation():
+	if !attacking and state != "Dead":
+		if steady:
+			$Hurt.visible = false
+			$Dead.visible = false
+			$Idle.visible = true
+			$Walk.visible = false
+			$Attack.visible = false
+			$AnimationPlayer.play("Idle")
+		else:
+			$Hurt.visible = false
+			$Dead.visible = false
+			$Idle.visible = false
+			$Walk.visible = true
+			$Attack.visible = false
+			$AnimationPlayer.play("Walk")
+
+
+func gravity():
+	motion.y += gravityforce
+	if motion.y > maxfallspeed:
+		motion.y = maxfallspeed
+
+
+func facing():
+	if motion.x < 0:
+		facing_right = false
+	elif motion.x > 0:
+		facing_right = true
+	
 	if !facing_right:
 		$Hurt.scale.x = -1
 		$Idle.scale.x = -1
@@ -69,11 +126,11 @@ func _physics_process(delta):
 		$Dead.scale.x = 1
 		$Walk.scale.x = 1
 		$Attack.scale.x = 1
-	
-	motion = move_and_slide(motion, Vector2(0, -1), false, 1)
 
 
 func idleLoop():
+	move_direction.x = 0
+	
 	$Hurt.visible = false
 	$Dead.visible = false
 	$Idle.visible = true
@@ -81,30 +138,33 @@ func idleLoop():
 	$Attack.visible = false
 	$AnimationPlayer.play("Idle")
 	
-	motion.y += gravity
-	if motion.y > maxfallspeed:
-		motion.y = maxfallspeed
-		
-	motion.x = lerp(motion.x, 0, 0.15)
-	
+	gravity_on = true
 
 
 func deadLoop():
-	motion.x = 0
-	motion.y = 0
+	gravity_on = false
+	move_direction.x = 0
 
 
 func hurtLoop():
-	motion.y += gravity
-	if motion.y > maxfallspeed:
-		motion.y = maxfallspeed
-	
-	motion.x = lerp(motion.x, 0, 0.15)
+	gravity_on = true
+	move_direction.x = 0
 
+
+func pursueLoop():
+	gravity_on = true
+	
+	if !attacking:
+		if get_global_position().distance_to(player.get_global_position()) > 30:
+			move_direction.x = (get_global_position().direction_to(player.get_global_position()).x)
+		else:
+			move_direction.x = 0
+			if can_attack:
+				attack()
 
 func attack():
 	can_attack = false
-	motion.x = 0
+	attacking = true
 	
 	$Hurt.visible = false
 	$Dead.visible = false
@@ -113,39 +173,6 @@ func attack():
 	$Attack.visible = true
 	$AnimationPlayer.play("Attack")
 	$"Attack Speed".start()
-
-func pursueLoop():
-	motion.y += gravity
-	if motion.y > maxfallspeed:
-		motion.y = maxfallspeed
-	
-	if $AnimationPlayer.current_animation != "Attack":
-		if get_global_position().distance_to(player.get_global_position()) > 30:
-			motion.x += (get_global_position().direction_to(player.get_global_position()).x)*accel
-			motion.x = clamp(motion.x, -maxspeed, maxspeed)
-			if motion.x < 0:
-				facing_right = false
-			else:
-				facing_right = true
-			
-			if motion.x <= 1.5 and motion.x >= -1.5:
-				$Hurt.visible = false
-				$Dead.visible = false
-				$Idle.visible = true
-				$Walk.visible = false
-				$Attack.visible = false
-				$AnimationPlayer.play("Idle")
-			else:
-				$Hurt.visible = false
-				$Dead.visible = false
-				$Idle.visible = false
-				$Walk.visible = true
-				$Attack.visible = false
-				$AnimationPlayer.play("Walk")
-		else:
-			if can_attack == true:
-				attack()
-	motion.x = lerp(motion.x, 0, 0.15)
 
 
 func hurt(damage, direction):
@@ -168,7 +195,6 @@ func hurt(damage, direction):
 			$AnimationPlayer.play("Hurt Left")
 
 
-
 func hpBarUpdate():
 	hp_bar.show()
 	hp_percentage = int((float(currenthealth)/maxhealth)*100)
@@ -183,10 +209,10 @@ func hpBarUpdate():
 	hp_timer.start()
 
 
-
 func die():
 	previous_state = state
 	state = "Dead"
+	attacking = false
 	$Hurt.visible = false
 	$Dead.visible = true
 	$Idle.visible = false
@@ -198,38 +224,6 @@ func die():
 	get_node("VisionRange/CollisionShape2D").set_deferred('disabled', true)
 	$RespawnTime.start()
 	hp_bar.hide()
-
-
-
-func _on_RespawnTime_timeout():
-	previous_state = null
-	state = "Idle"
-	get_node("CollisionShape2D").set_deferred('disabled', false)
-	get_node("AttackArea/SkeletonBody").set_deferred('disabled', false)
-	get_node("VisionRange/CollisionShape2D").set_deferred('disabled', false)
-	
-	currenthealth = maxhealth
-	hpBarUpdate()
-	hp_bar.hide()
-
-
-
-func _on_AnimationPlayer_animation_finished(anim_name):
-	if anim_name == "Dead":
-		$Hurt.visible = false
-		$Dead.visible = false
-		$Idle.visible = false
-		$Walk.visible = false
-		$Attack.visible = false
-	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
-		if previous_state == "Pursue":
-			previous_state = state
-			state = "Pursue"
-		else:
-			previous_state = state
-			state = "Idle"
-		
-
 
 
 func hurtMovement(direction):
@@ -258,6 +252,45 @@ func hurtMovement(direction):
 			motion.y = 200
 
 
+func _on_RespawnTime_timeout():
+	previous_state = null
+	state = "Reviving"
+	$Hurt.visible = false
+	$Dead.visible = true
+	$Idle.visible = false
+	$Walk.visible = false
+	$Attack.visible = false
+	$AnimationPlayer.play_backwards("Dead")
+	yield($AnimationPlayer, "animation_finished")
+	
+	state = "Idle"
+	get_node("CollisionShape2D").set_deferred('disabled', false)
+	get_node("AttackArea/SkeletonBody").set_deferred('disabled', false)
+	get_node("VisionRange/CollisionShape2D").set_deferred('disabled', false)
+	
+	currenthealth = maxhealth
+	hpBarUpdate()
+	hp_bar.hide()
+
+
+func _on_AnimationPlayer_animation_finished(anim_name):
+	if anim_name == "Dead":
+		$Hurt.visible = false
+		$Dead.visible = false
+		$Idle.visible = false
+		$Walk.visible = false
+		$Attack.visible = false
+	if anim_name == "Hurt Right" || anim_name == "Hurt Left":
+		attacking = false
+		if previous_state == "Pursue":
+			previous_state = state
+			state = "Pursue"
+		else:
+			previous_state = state
+			state = "Idle"
+	if anim_name == "Attack":
+		attacking = false
+
 
 func _on_AttackArea_body_entered(body):
 	if body.is_in_group("Players"):
@@ -272,7 +305,7 @@ func _on_Hpbar_timer_timeout():
 
 
 func _on_VisionRange_body_entered(body):
-	if state != "dead":
+	if state != "Dead":
 		if body.is_in_group("Players"):
 			player_in_range = true
 			previous_state = state
@@ -280,8 +313,9 @@ func _on_VisionRange_body_entered(body):
 
 
 func _on_VisionRange_body_exited(body):
-	if state != "dead":
+	if state != "Dead":
 		if body.is_in_group("Players"):
+			attacking = false
 			player_in_range = false
 			previous_state = state
 			state = "Idle"
