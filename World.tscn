@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Character.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Skeleton.tscn" type="PackedScene" id=2]
 [ext_resource path="res://TileSet.tscn" type="PackedScene" id=3]
+[ext_resource path="res://GameMenu.tscn" type="PackedScene" id=4]
 
 [node name="World" type="Node2D"]
 position = Vector2( -1.04401, 0.399002 )
@@ -24,3 +25,16 @@ position = Vector2( 72.3323, 1328.68 )
 
 [node name="Skeleton4" parent="." instance=ExtResource( 2 )]
 position = Vector2( 252.816, 1328.68 )
+
+[node name="GUI" type="CanvasLayer" parent="."]
+
+[node name="GameMenu" parent="GUI" instance=ExtResource( 4 )]
+visible = false
+anchor_left = 0.413
+anchor_top = 0.176
+anchor_right = 0.413
+anchor_bottom = 0.176
+margin_left = -0.256927
+margin_top = -0.202568
+margin_right = 63.7431
+margin_bottom = 127.797

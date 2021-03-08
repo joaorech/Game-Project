@@ -98,6 +98,8 @@ func _physics_process(delta):
 		dashing = true
 		$AnimationPlayer.play("Dash Forward")
 	
+	if Input.is_action_just_pressed("Game Menu"):
+		get_parent().get_node("GUI/GameMenu").show()
 	
 	motion = move_and_slide(motion, up)
 
