@@ -3,7 +3,11 @@ extends KinematicBody2D
 onready var hp_bar = get_node("Hp_bar")
 onready var hp_timer = get_node("Hp_bar/Hpbar timer")
 onready var hp_tween = get_node("Hp_bar/Tween")
+
 onready var player = get_parent().get_node("Character")
+
+onready var gui = get_parent().get_node("GUI")
+
 
 var rng = RandomNumberGenerator.new()
 
@@ -47,40 +51,47 @@ func _ready():
 # warning-ignore:unused_argument
 func _process(delta):
 	facing()
-	if previous_state == "Dead":
-		state = "Dead"
-	match state:
-		"Idle":
-			idleLoop()
-			moveAnimation()
-		"Dead":
-			deadLoop()
-		"Hurt":
-			hurtLoop()
-		"Pursue":
-			pursueLoop()
-			moveAnimation()
-		"Reviving":
-			pass
-		
+	if !gui.game_menu_on:
+		$AnimationPlayer.play()
+		if previous_state == "Dead":
+			state = "Dead"
+		match state:
+			"Idle":
+				idleLoop()
+				moveAnimation()
+			"Dead":
+				deadLoop()
+			"Hurt":
+				hurtLoop()
+			"Pursue":
+				pursueLoop()
+				moveAnimation()
+			"Reviving":
+				pass
+	else:
+		$AnimationPlayer.stop()
 
 
 # warning-ignore:unused_argument
 func _physics_process(delta):
-	if gravity_on:
-		gravity()
-	
-	motion.x += move_direction.x*accel
-	
-	if motion.x <= 1.5 and motion.x >= -1.5:
-		steady = true
+	if gui.game_menu_on:
+		motion.x = 0
+		motion.y = 0
 	else:
-		steady = false
-	
-	if state != "Hurt":
-		motion.x = clamp(motion.x, -maxspeed, maxspeed)
-	motion = move_and_slide(motion, Vector2(0, -1), false, 1)
-	motion.x = lerp(motion.x, 0, 0.15)
+		if gravity_on:
+			gravity()
+		
+		motion.x += move_direction.x*accel
+		
+		if motion.x <= 1.5 and motion.x >= -1.5:
+			steady = true
+		else:
+			steady = false
+		
+		if state != "Hurt":
+			motion.x = clamp(motion.x, -maxspeed, maxspeed)
+		motion = move_and_slide(motion, Vector2(0, -1), false, 1)
+		motion.x = lerp(motion.x, 0, 0.15)
 	
 
 

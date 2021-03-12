@@ -1,15 +1,20 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://scenes/Character.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scenes/Skeleton.tscn" type="PackedScene" id=2]
 [ext_resource path="res://scenes/TileSet.tscn" type="PackedScene" id=3]
-[ext_resource path="res://scenes/GameMenu.tscn" type="PackedScene" id=4]
+[ext_resource path="res://fonts/pkm_usedfont.tres" type="DynamicFont" id=4]
+[ext_resource path="res://images/UI/menu_background.png" type="Texture" id=5]
+[ext_resource path="res://images/UI/button.png" type="Texture" id=6]
+[ext_resource path="res://scripts/GUI.gd" type="Script" id=7]
+[ext_resource path="res://images/UI/button_pressed.png" type="Texture" id=8]
+[ext_resource path="res://images/Effects/hp_progress_white.png" type="Texture" id=9]
+[ext_resource path="res://images/Effects/hp_top.png" type="Texture" id=10]
 
 [node name="World" type="Node2D"]
-position = Vector2( -1.04401, 0.399002 )
 
 [node name="Character" parent="." instance=ExtResource( 1 )]
-position = Vector2( 351.281, 239.384 )
+position = Vector2( 350.04, 239.533 )
 z_index = 1
 
 [node name="TileSet" parent="." instance=ExtResource( 3 )]
@@ -27,14 +32,214 @@ position = Vector2( 72.3323, 1328.68 )
 position = Vector2( 252.816, 1328.68 )
 
 [node name="GUI" type="CanvasLayer" parent="."]
+script = ExtResource( 7 )
 
-[node name="GameMenu" parent="GUI" instance=ExtResource( 4 )]
+[node name="GameMenu" type="Control" parent="GUI"]
 visible = false
-anchor_left = 0.413
-anchor_top = 0.176
-anchor_right = 0.413
-anchor_bottom = 0.176
-margin_left = -0.256927
-margin_top = -0.202568
-margin_right = 63.7431
-margin_bottom = 127.797
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -40.0
+margin_top = -64.0
+margin_right = 40.0
+margin_bottom = 64.0
+rect_scale = Vector2( 3.2, 3.125 )
+rect_pivot_offset = Vector2( 40, 64 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NinePatchRect" type="NinePatchRect" parent="GUI/GameMenu"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource( 5 )
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/GameMenu"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 14.0
+margin_top = 12.0
+margin_right = -14.0
+margin_bottom = -12.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GameMenu" type="Label" parent="GUI/GameMenu/VBoxContainer"]
+margin_right = 52.0
+margin_bottom = 7.0
+custom_fonts/font = ExtResource( 4 )
+text = "Game Menu"
+align = 1
+valign = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="GUI/GameMenu/VBoxContainer"]
+margin_top = 11.0
+margin_right = 52.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 0, 17 )
+
+[node name="Resume" type="TextureButton" parent="GUI/GameMenu/VBoxContainer"]
+margin_top = 32.0
+margin_right = 52.0
+margin_bottom = 44.0
+texture_normal = ExtResource( 6 )
+texture_pressed = ExtResource( 8 )
+
+[node name="Label" type="Label" parent="GUI/GameMenu/VBoxContainer/Resume"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -1.0
+margin_top = 1.0
+margin_right = -1.0
+margin_bottom = 1.0
+custom_fonts/font = ExtResource( 4 )
+text = "resume"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Options" type="TextureButton" parent="GUI/GameMenu/VBoxContainer"]
+margin_top = 48.0
+margin_right = 52.0
+margin_bottom = 60.0
+texture_normal = ExtResource( 6 )
+texture_pressed = ExtResource( 8 )
+
+[node name="Label" type="Label" parent="GUI/GameMenu/VBoxContainer/Options"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 1.0
+margin_bottom = 1.0
+custom_fonts/font = ExtResource( 4 )
+text = "options"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MarginContainer2" type="MarginContainer" parent="GUI/GameMenu/VBoxContainer"]
+margin_top = 64.0
+margin_right = 52.0
+margin_bottom = 86.0
+rect_min_size = Vector2( 0, 22 )
+
+[node name="QuitGame" type="TextureButton" parent="GUI/GameMenu/VBoxContainer"]
+margin_top = 90.0
+margin_right = 52.0
+margin_bottom = 102.0
+texture_normal = ExtResource( 6 )
+texture_pressed = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="GUI/GameMenu/VBoxContainer/QuitGame"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 2.0
+margin_bottom = 2.0
+custom_fonts/font = ExtResource( 4 )
+text = "Quit Game"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CharacterHud" type="Control" parent="GUI"]
+margin_right = 46.0
+margin_bottom = 18.0
+rect_scale = Vector2( 3.2, 3.125 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hp_bar" type="TextureProgress" parent="GUI/CharacterHud"]
+margin_right = 46.0
+margin_bottom = 6.0
+rect_min_size = Vector2( 46, 6 )
+value = 100.0
+texture_under = ExtResource( 9 )
+texture_over = ExtResource( 10 )
+texture_progress = ExtResource( 9 )
+tint_under = Color( 0.235294, 0.235294, 0.235294, 1 )
+tint_progress = Color( 1, 0, 0, 1 )
+nine_patch_stretch = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Hp_bar_timer" type="Timer" parent="GUI/CharacterHud/Hp_bar"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Tween" type="Tween" parent="GUI/CharacterHud/Hp_bar"]
+
+[node name="Hp_regen" type="Timer" parent="GUI/CharacterHud/Hp_bar"]
+autostart = true
+
+[node name="Energy_bar" type="TextureProgress" parent="GUI/CharacterHud"]
+margin_top = 6.0
+margin_right = 37.0
+margin_bottom = 12.0
+rect_min_size = Vector2( 0, 6 )
+value = 100.0
+texture_under = ExtResource( 9 )
+texture_over = ExtResource( 10 )
+texture_progress = ExtResource( 9 )
+tint_under = Color( 0.235294, 0.235294, 0.235294, 1 )
+tint_progress = Color( 0.188235, 0.705882, 0.0588235, 1 )
+nine_patch_stretch = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Energy_bar_timer" type="Timer" parent="GUI/CharacterHud/Energy_bar"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Tween" type="Tween" parent="GUI/CharacterHud/Energy_bar"]
+
+[node name="Energy_regen" type="Timer" parent="GUI/CharacterHud/Energy_bar"]
+autostart = true
+
+[node name="Mana_bar" type="TextureProgress" parent="GUI/CharacterHud"]
+margin_top = 12.0
+margin_right = 28.0
+margin_bottom = 18.0
+rect_min_size = Vector2( 0, 6 )
+value = 100.0
+texture_under = ExtResource( 9 )
+texture_over = ExtResource( 10 )
+texture_progress = ExtResource( 9 )
+tint_under = Color( 0.235294, 0.235294, 0.235294, 1 )
+tint_progress = Color( 0.156863, 0.423529, 0.921569, 1 )
+nine_patch_stretch = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Mana_bar_timer" type="Timer" parent="GUI/CharacterHud/Mana_bar"]
+wait_time = 3.0
+one_shot = true
+
+[node name="Tween" type="Tween" parent="GUI/CharacterHud/Mana_bar"]
+
+[node name="Mana_regen" type="Timer" parent="GUI/CharacterHud/Mana_bar"]
+autostart = true
+[connection signal="pressed" from="GUI/GameMenu/VBoxContainer/Resume" to="GUI" method="_on_Resume_pressed"]
+[connection signal="pressed" from="GUI/GameMenu/VBoxContainer/QuitGame" to="GUI" method="_on_QuitGame_pressed"]

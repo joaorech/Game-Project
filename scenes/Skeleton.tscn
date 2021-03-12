@@ -9,7 +9,6 @@
 [ext_resource path="res://images/character/Skeleton/Skeleton Walk.png" type="Texture" id=7]
 [ext_resource path="res://images/character/Skeleton/Skeleton Attack.png" type="Texture" id=8]
 
-
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 7.56525, 16 )
 
@@ -227,6 +226,7 @@ scale = Vector2( 1, 0.8 )
 shape = SubResource( 1 )
 
 [node name="Attack" type="CollisionShape2D" parent="AttackArea"]
+visible = false
 position = Vector2( 0, 12 )
 shape = SubResource( 8 )
 disabled = true

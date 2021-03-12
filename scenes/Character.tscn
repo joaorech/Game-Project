@@ -1,13 +1,10 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://images/character/Rogue/Rogue-sheet.png" type="Texture" id=1]
 [ext_resource path="res://scripts/Character.gd" type="Script" id=2]
 [ext_resource path="res://images/tileset/BG1.png" type="Texture" id=3]
 [ext_resource path="res://images/tileset/BG3.png" type="Texture" id=4]
 [ext_resource path="res://images/tileset/BG2.png" type="Texture" id=5]
-[ext_resource path="res://images/Effects/hp_progress_white.png" type="Texture" id=6]
-[ext_resource path="res://images/Effects/hp_top.png" type="Texture" id=7]
-
 
 [sub_resource type="CapsuleShape2D" id=1]
 
@@ -415,7 +412,7 @@ shape = SubResource( 1 )
 current = true
 zoom = Vector2( 0.3, 0.3 )
 smoothing_enabled = true
-smoothing_speed = 4.0
+smoothing_speed = 7.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Camera2D"]
 layer = -2
@@ -499,32 +496,5 @@ position = Vector2( 0, -3 )
 rotation = 1.5708
 shape = SubResource( 16 )
 disabled = true
-
-[node name="Hp_bar" type="TextureProgress" parent="."]
-margin_left = -14.5
-margin_top = -25.0
-margin_right = 15.5
-margin_bottom = -19.0
-value = 100.0
-texture_under = ExtResource( 6 )
-texture_over = ExtResource( 7 )
-texture_progress = ExtResource( 6 )
-tint_under = Color( 0.235294, 0.235294, 0.235294, 1 )
-tint_progress = Color( 0.188235, 0.705882, 0.0588235, 1 )
-nine_patch_stretch = true
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Hp_bar_timer" type="Timer" parent="Hp_bar"]
-wait_time = 3.0
-one_shot = true
-
-[node name="Tween" type="Tween" parent="Hp_bar"]
-
-[node name="Hp_regen" type="Timer" parent="Hp_bar"]
-autostart = true
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]
 [connection signal="body_entered" from="AttackArea" to="." method="_on_AttackArea_body_entered"]
-[connection signal="timeout" from="Hp_bar/Hp_bar_timer" to="." method="_on_Hp_timer_timeout"]
-[connection signal="timeout" from="Hp_bar/Hp_regen" to="." method="_on_Hp_regen_timeout"]
