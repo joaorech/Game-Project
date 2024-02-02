@@ -1,2 +1,3 @@
 # Godot Game Project
-All my projects
+
+Run the .exe file to open the demo game
